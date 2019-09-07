@@ -3,7 +3,7 @@ Parsing Line6 Helix Backup Files
 
 The project parses a Line 6 Helix Backup file (*.hxb).
 
-I am using firmware 2.81 but I expect the format of the hxb file hasn't change much in recent times.
+I am using firmware 2.81 but I expect the format of the hxb file hasn't changed much in recent times.
 
 The file starts with a non-compressed header with a proprietary file signature "AF6L" which I'm guessing may stand for for "Line6 Full Archive" (little-endian byte ordering). The header also contains some text including the backup description and names of the set lists and is immediately followed by the first of several zlib sections. The first section contains the global settings. This is followed by a section for each of the IRs and a section for each of the 8 setlists. The sections use the standard zlib Deflate algorithm, and when inflated the global settings and setlist sections are in json, and the IRs are in wav (with "RIFF" signature at the head and embedded metadata for IR name, etc).
 
