@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Xml;
-
-namespace HelixBackupFileCore
+﻿namespace HelixBackupFileCore
 {
     using System;
     using System.IO;
@@ -9,6 +6,7 @@ namespace HelixBackupFileCore
     using System.Text;
     using HelixBackupFileCore.Exceptions;
     using HelixBackupFileCore.Models;
+    using Newtonsoft.Json;
 
     public sealed class Parser
     {
@@ -18,6 +16,8 @@ namespace HelixBackupFileCore
         private const string GlobalSettingsCode = "BOLG";
 
         private readonly string _backupFilePath;
+
+        private int _anonymousPresetCounter = 1;
         
         public Parser(string backupFilePath)
         {
@@ -26,17 +26,24 @@ namespace HelixBackupFileCore
 
         public event EventHandler<SectionDataEventArgs> ParsedSectionEvent;
 
+        public event EventHandler<PresetDataEventArgs> ParsedPresetEvent;
+
+        public bool ParseSections { get; set; } = true;
+
+        public bool ParsePresets { get; set; } = true;
+
         public FileHeader FileHeader { get; private set; }
 
         public FileFooter FileFooter { get; private set; }
         
         public void Execute()
         {
+            CheckFileExists();
+
             var fileData = File
                 .ReadAllBytes(_backupFilePath)
                 .ToArray();
-
-            CheckFileExists();
+            
             ReadHeaderAndFooter(fileData);
 
             InflateCompressedData(fileData);
@@ -44,6 +51,11 @@ namespace HelixBackupFileCore
 
         private void InflateCompressedData(byte[] fileData)
         {
+            if (!ParseSections && !ParsePresets)
+            {
+                return;
+            }
+
             foreach (var record in FileFooter.Records)
             {
                 if (record.IsSectionDeflated)
@@ -58,10 +70,101 @@ namespace HelixBackupFileCore
                         SectionData = data,
                         SectionTitle = record.Title,
                         SectionDescription = description,
+                        SuggestedFileName = GetSectionSuggestedFileName(description, record.SectionType),
                         SectionType = record.SectionType,
                     });
+
+                    if (record.SectionType == SectionType.SetList)
+                    {
+                        ParseSetList(data);
+                    }
                 }
             }
+        }
+
+        private string GetSectionSuggestedFileName(string description, SectionType recordSectionType)
+        {
+            switch (recordSectionType)
+            {
+                case SectionType.BackupDescription:
+                    return $"{FileNamingService.CoerceValidFileName(description)}.txt";
+
+                case SectionType.GlobalSettings:
+                    return $"{FileNamingService.CoerceValidFileName(description)}.json";
+
+                case SectionType.HelixDi:
+                    return $"{FileNamingService.CoerceValidFileName(description)}.dat";
+
+                case SectionType.ImpulseResponse:
+                    return $"{FileNamingService.CoerceValidFileName(description)}.wav";
+
+                case SectionType.SetListNames:
+                    return $"{FileNamingService.CoerceValidFileName(description)}.dat";
+
+                case SectionType.SetList:
+                    return $"{FileNamingService.CoerceValidFileName(description)}.json";
+
+                default:
+                    return "unknown.dat";
+            }
+        }
+
+        private void ParseSetList(byte[] setListJson)
+        {
+            if (!ParsePresets)
+            {
+                return;
+            }
+
+            var enc = new UTF8Encoding();
+            dynamic json = JsonConvert.DeserializeObject(enc.GetString(setListJson));
+
+            if (json != null)
+            {
+                var setListName = json.data.meta.name;
+
+                var presets = json.data.presets;
+
+                foreach (var preset in presets)
+                {
+                    var encodedData = preset.encoded_data;
+                    var isEncoded = encodedData != null;
+
+                    if (!isEncoded)
+                    {
+                        if (preset.meta == null)
+                        {
+                            // An empty preset.
+                            continue;
+                        }
+
+                        string presetName = preset.meta.name;
+
+                        if (string.IsNullOrEmpty(presetName))
+                        {
+                            presetName = FabricatePresetName();
+                        }
+
+                        OnParsedPresetEvent(new PresetDataEventArgs
+                        {
+                            ParentSetListName = setListName,
+                            PresetName = presetName,
+                            SuggestedFileName = $"{FileNamingService.CoerceValidFileName(presetName)}.hlx",
+                            PresetData = preset.ToString(),
+                        });
+                    }
+                    else
+                    {
+                        // todo: unencode to get preset name
+
+                    }
+                }
+            }
+        }
+
+        private string FabricatePresetName()
+        {
+            return $"ANON {_anonymousPresetCounter++:D3}";
         }
 
         private string GetSectionDescription(FileFooterRecord record, byte[] data)
@@ -297,6 +400,11 @@ namespace HelixBackupFileCore
         private void OnParsedSectionEvent(SectionDataEventArgs e)
         {
             ParsedSectionEvent?.Invoke(this, e);
+        }
+
+        private void OnParsedPresetEvent(PresetDataEventArgs e)
+        {
+            ParsedPresetEvent?.Invoke(this, e);
         }
     }
 }

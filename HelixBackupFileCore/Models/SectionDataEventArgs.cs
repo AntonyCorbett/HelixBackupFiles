@@ -1,4 +1,6 @@
-﻿namespace HelixBackupFileCore.Models
+﻿using System.ComponentModel;
+
+namespace HelixBackupFileCore.Models
 {
     using System;
 
@@ -11,5 +13,7 @@
         public byte[] SectionData { get; set; }
 
         public SectionType SectionType { get; set; }
+
+        public string SuggestedFileName { get; set; }
     }
 }

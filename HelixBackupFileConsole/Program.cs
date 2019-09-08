@@ -10,6 +10,12 @@
     // the corresponding files (IRs and set list files) to disk.
     class Program
     {
+        private static readonly string OutputFolder = "Output";
+        private static readonly string SetListsFolder = "SetLists";
+        private static readonly string ImpulseResponsesFolder = "ImpulseResponses";
+        private static readonly string PresetsFolder = "Presets";
+        private static readonly string MiscFolder = "Miscellaneous";
+
         static void Main(string[] args)
         {
             if (args.Length != 1)
@@ -21,29 +27,78 @@
             var parser = new Parser(args[0]);
 
             parser.ParsedSectionEvent += HandleParsedSectionEvent;
+            parser.ParsedPresetEvent += HandleParsedPresetEvent;
+
             parser.Execute();
         }
 
-        private static void HandleParsedSectionEvent(object sender, SectionDataEventArgs e)
+        private static void HandleParsedPresetEvent(object sender, PresetDataEventArgs e)
         {
-            var fileName = GenerateFileName(e);
-            Console.WriteLine($"Writing {fileName}");
-            File.WriteAllBytes(fileName, e.SectionData);
-        }
+            if (string.IsNullOrEmpty(e.ParentSetListName))
+            {
+                throw new ArgumentException(nameof(e.ParentSetListName));
+            }
 
-        private static string GenerateFileName(SectionDataEventArgs e)
+            if (string.IsNullOrEmpty(e.PresetName))
+            {
+                throw new ArgumentException(nameof(e.PresetName));
+            }
+
+            if (string.IsNullOrEmpty(e.PresetData))
+            {
+                throw new ArgumentException(nameof(e.PresetData));
+            }
+
+            var presetsFolder = Path.Combine(OutputFolder, SetListsFolder, e.ParentSetListName, PresetsFolder);
+            Directory.CreateDirectory(presetsFolder);
+
+            if (!Directory.Exists(presetsFolder))
+            {
+                throw new Exception($"Cannot create folder: {presetsFolder}");
+            }
+
+            var filePath = Path.Combine(presetsFolder, e.SuggestedFileName);
+            File.WriteAllText(filePath, e.PresetData);
+        }
+        
+        private static void HandleParsedSectionEvent(object sender, SectionDataEventArgs e)
         {
             switch (e.SectionType)
             {
                 case SectionType.ImpulseResponse:
-                    return $"{e.SectionDescription}.wav";
+                {
+                    var impulseResponsesFolder = Path.Combine(OutputFolder, ImpulseResponsesFolder);
+                    Directory.CreateDirectory(impulseResponsesFolder);
+                    var filePath = Path.Combine(impulseResponsesFolder, e.SuggestedFileName);
+                    File.WriteAllBytes(filePath, e.SectionData);
+                    break;
+                }
+
+                case SectionType.GlobalSettings:
+                {
+                    Directory.CreateDirectory(OutputFolder);
+                    var filePath = Path.Combine(OutputFolder, e.SuggestedFileName);
+                    File.WriteAllBytes(filePath, e.SectionData);
+                    break;
+                }
 
                 case SectionType.SetList:
-                case SectionType.GlobalSettings:
-                    return $"{e.SectionDescription}.json";
+                {
+                    var setListsFolder = Path.Combine(OutputFolder, SetListsFolder);
+                    Directory.CreateDirectory(setListsFolder);
+                    var filePath = Path.Combine(setListsFolder, e.SuggestedFileName);
+                    File.WriteAllBytes(filePath, e.SectionData);
+                    break;
+                }
 
                 default:
-                    return $"{e.SectionTitle}.txt";
+                {
+                    var miscFolder = Path.Combine(OutputFolder, MiscFolder);
+                    Directory.CreateDirectory(miscFolder);
+                    var filePath = Path.Combine(miscFolder, e.SuggestedFileName);
+                    File.WriteAllBytes(filePath, e.SectionData);
+                    break;
+                }
             }
         }
     }
