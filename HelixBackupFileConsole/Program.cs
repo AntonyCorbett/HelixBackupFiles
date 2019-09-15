@@ -8,7 +8,7 @@
     // Sample console application that uses the "HelixBackupFileCore" assembly.
     // Here we just extract the various parts of the backup file and write
     // the corresponding files (IRs and set list files) to disk.
-    class Program
+    internal static class Program
     {
         private static readonly string OutputFolder = "Output";
         private static readonly string SetListsFolder = "SetLists";
@@ -16,7 +16,7 @@
         private static readonly string PresetsFolder = "Presets";
         private static readonly string MiscFolder = "Miscellaneous";
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             if (args.Length != 1)
             {
@@ -63,6 +63,8 @@
         
         private static void HandleParsedSectionEvent(object sender, SectionDataEventArgs e)
         {
+            Console.WriteLine($"Parsing section: {e.SectionDescription}");
+
             switch (e.SectionType)
             {
                 case SectionType.ImpulseResponse:

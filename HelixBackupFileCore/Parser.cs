@@ -130,6 +130,8 @@
                     var encodedData = preset.encoded_data;
                     var isEncoded = encodedData != null;
 
+                    string presetName;
+
                     if (!isEncoded)
                     {
                         if (preset.meta == null)
@@ -138,26 +140,29 @@
                             continue;
                         }
 
-                        string presetName = preset.meta.name;
+                        presetName = preset.meta.name;
 
                         if (string.IsNullOrEmpty(presetName))
                         {
-                            presetName = FabricatePresetName();
+                            // Unusual! It may represent corrupt preset data
+                            // or simply extraneous data that should be ignored...
+                            continue;
                         }
-
-                        OnParsedPresetEvent(new PresetDataEventArgs
-                        {
-                            ParentSetListName = setListName,
-                            PresetName = presetName,
-                            SuggestedFileName = $"{FileNamingService.CoerceValidFileName(presetName)}.hlx",
-                            PresetData = preset.ToString(),
-                        });
                     }
                     else
                     {
-                        // todo: unencode to get preset name
-
+                        // when encrypted (a premium preset), we can't decrypt to get the 
+                        // preset name so fabricate a name...
+                        presetName = FabricatePresetName();
                     }
+
+                    OnParsedPresetEvent(new PresetDataEventArgs
+                    {
+                        ParentSetListName = setListName,
+                        PresetName = presetName,
+                        SuggestedFileName = $"{FileNamingService.CoerceValidFileName(presetName)}.hlx",
+                        PresetData = preset.ToString(),
+                    });
                 }
             }
         }
