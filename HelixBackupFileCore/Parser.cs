@@ -155,7 +155,7 @@
                         // preset name so fabricate a name...
                         presetName = FabricatePresetName();
                     }
-
+                    
                     OnParsedPresetEvent(new PresetDataEventArgs
                     {
                         ParentSetListName = setListName,
