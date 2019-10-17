@@ -21,7 +21,7 @@ There is a x64 build for Windows available in the Releases section.
 4. Open a command prompt window.
 4. Run HelixBackupFileConsole.exe placing the name of your backup file on the command-line.
 
-The console application will extract all of the presets and IRs from teh backup file and place them in a subfolder named "output"
+The console application will extract all of the presets and IRs from the backup file and place them in a subfolder named "output"
 
 
 
