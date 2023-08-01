@@ -29,7 +29,7 @@ HelixBackupFileConsole.zip - This is a portable release in a zip archive. You mu
 
 HelixBackupFileConsole.exe - This is a Windows-only release and does _not_ require NET 7 to be installed.
 
-1. Download the exe files to a new folder.
+1. Download the exe file to a new folder.
 2. Copy your Helix backup file into the folder.
 3. Open a command prompt window.
 4. Run HelixBackupFileConsole.exe placing the name of your backup file on the command-line.
