@@ -13,12 +13,25 @@ I created this in order to extract and analyse preset data. You must be very car
 
 # Instructions
 
-There is a x64 build for Windows available in the Releases section. 
+There are 2 versions available as follows:
+
+## Portable
+
+HelixBackupFileConsole.zip - This is a portable release in a zip archive. You must have .NET 7 installed on your system.
 
 1. Download the zip file
 2. Unzip it to a new folder.
 3. Copy your Helix backup file into the folder.
 4. Open a command prompt window.
+4. Run HelixBackupFileConsole.exe placing the name of your backup file on the command-line.
+
+## Windows
+
+HelixBackupFileConsole.exe - This is a Windows-only release and does _not_ require NET 7 to be installed.
+
+1. Download the exe files to a new folder.
+2. Copy your Helix backup file into the folder.
+3. Open a command prompt window.
 4. Run HelixBackupFileConsole.exe placing the name of your backup file on the command-line.
 
 The console application will extract all of the presets and IRs from the backup file and place them in a subfolder named "output"
