@@ -60,7 +60,7 @@
             var filePath = Path.Combine(presetsFolder, e.SuggestedFileName);
             File.WriteAllText(filePath, e.PresetData);
         }
-        
+
         private static void HandleParsedSectionEvent(object sender, SectionDataEventArgs e)
         {
             Console.WriteLine($"Parsing section: {e.SectionDescription}");

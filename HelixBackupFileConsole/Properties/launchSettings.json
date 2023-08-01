@@ -2,7 +2,7 @@
   "profiles": {
     "HelixBackupFileConsole": {
       "commandName": "Project",
-      "commandLineArgs": "D:\\ProjectsPersonal\\HelixPatches\\SamplePatches\\Backup1.hxb"
+      "commandLineArgs": "D:\\temp\\Test.hxb"
     }
   }
 }

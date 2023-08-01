@@ -117,7 +117,7 @@
             }
 
             var enc = new UTF8Encoding();
-            dynamic json = JsonConvert.DeserializeObject(enc.GetString(setListJson));
+            dynamic? json = JsonConvert.DeserializeObject(enc.GetString(setListJson));
 
             if (json != null)
             {
